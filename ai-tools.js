@@ -8,6 +8,14 @@ Hooks.once('init', async function() {
         config: true,
         type: String,
     });
+    game.settings.register("ai-tools", "openaiBaseUrl", {
+        name: "OpenAI Base URL",
+        hint: "Leave this at the default if you're using the standard OpenAI service - change if you are using a different, but compatible api",
+        scope: "world",
+        config: true,
+        type: String,
+        default: "https://api.openai.com"
+    });
     game.settings.register("ai-tools", "sd3ApiKey", {
         name: "Stable Diffusion 3 API Key",
         hint: "Get one from platform.stability.ai. This is required to generate images using Stability AI's Stable Diffusion 3 model.",
@@ -226,7 +234,7 @@ function drawActorSheetOverlay(sheet, html) {
 
 function fetchFromOpenAI(data, docUpdateCallBack, nid, retry) {
     console.log('HERE OPENAI')
-    return fetch("https://api.openai.com/v1/images/generations", {
+    return fetch(`${game.settings.get("ai-tools", "openaiBaseUrl")}/v1/images/generations`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -261,7 +269,7 @@ function getNewPortrait(prompt, docUpdateCallBack = () => {}, retry = 0, options
         ui.notifications.remove(nid);
         if (!response.ok) {
             ui.notifications.error("Failed to contact image servers. Please try again later.");
-            return;
+            return; // TODO After testing, come back here and add a retry setting? Seems weird to have unreachable code.
             if (retry < 3) {
                 ui.notifications.warn("Failed to contact OpenAI severs. Trying again...");
                 getNewPortrait(prompt, docUpdateCallBack, retry + 1);
